@@ -30,6 +30,9 @@ jobs:
           echo "API_KEY=${{ secrets.API_KEY }}" > local.properties
           echo "BASE_URL=${{ secrets.BASE_URL }}" >> local.properties
 
+      - name: Publish Library to CI Maven Local
+        run: ./gradlew :weather-lib:publishReleasePublicationToMavenLocal
+
       - name: Run Lint Checks
         run: ./gradlew lintDebug
         continue-on-error: true

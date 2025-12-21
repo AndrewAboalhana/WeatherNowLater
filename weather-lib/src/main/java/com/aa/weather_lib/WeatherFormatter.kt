@@ -1,10 +1,10 @@
-package com.aa.common.util
+package com.aa.weather_lib
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-object DateUtils {
+object WeatherFormatter {
 
     fun formatForecastDate(dateString: String): String {
         return try {

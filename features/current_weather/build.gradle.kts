@@ -48,6 +48,10 @@ dependencies {
     ksp(libs.hilt.ksp)
     implementation(libs.hilt)
 //endregion
+
+//region custom libraries
+    implementation("com.aa.weatherlib:weather-formatter:1.0.0")
+//endregion
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
