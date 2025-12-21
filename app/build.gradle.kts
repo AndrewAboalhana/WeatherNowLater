@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.dagger.hilt)
 }
 
 android {
@@ -50,6 +52,16 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+//region Architecture dependencies
+    implementation(project(":features:search"))
+    implementation(project(":features:current_weather"))
+    implementation(project(":features:forecast"))
+    implementation(project(":core:common"))
+//endregion
+//region dependency injection
+    ksp(libs.hilt.ksp)
+    implementation(libs.hilt)
+//endregion
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
