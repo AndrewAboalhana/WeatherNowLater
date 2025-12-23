@@ -7,36 +7,41 @@ import com.aa.common.dispatcher.DispatcherProvider
 import com.aa.data.mapper.toDomainList
 import com.aa.data.mapper.toDomainModel
 import com.aa.data.mapper.toEntity
-import com.aa.database.dao.WeatherDao
+import com.aa.data.source.WeatherLocalDataSource
+import com.aa.data.source.WeatherRemoteDataSource
 import com.aa.domain.models.WeatherInfo
 import com.aa.domain.repositories.WeatherRepository
 import com.aa.domain.util.Resource
-import com.aa.network.retrofit.WeatherApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import java.io.IOException
 import javax.inject.Inject
 
 class WeatherRepositoryImpl @Inject constructor(
-    private val api: WeatherApi,
-    private val dao: WeatherDao,
+    private val remoteDataSource: WeatherRemoteDataSource,
+    private val localDataSource: WeatherLocalDataSource,
     private val dispatchers: DispatcherProvider
 ) : WeatherRepository {
 
     @RequiresExtension(extension = Build.VERSION_CODES.S, version = 7)
     override suspend fun getCurrentWeather(city: String): Flow<Resource<WeatherInfo>> = flow {
-
         emit(Resource.Loading(true))
-        val localData = dao.getWeatherByCity(city)
+
+        val localData = localDataSource.getWeatherByCity(city)
         if (localData != null) {
             emit(Resource.Success(localData.toDomainModel()))
             emit(Resource.Loading(true))
         }
+
         try {
-            val remoteData = api.getCurrentWeather(city = city)
-            dao.insertWeather(remoteData.toEntity())
-            val updatedLocalData = dao.getWeatherByCity(remoteData.name ?: city)
+            val remoteData = remoteDataSource.getCurrentWeather(city)
+
+            localDataSource.insertWeather(remoteData.toEntity())
+
+            val updatedLocalData = localDataSource.getWeatherByCity(remoteData.name ?: city)
+
             if (updatedLocalData != null) {
                 emit(Resource.Success(updatedLocalData.toDomainModel()))
             }
@@ -59,9 +64,7 @@ class WeatherRepositoryImpl @Inject constructor(
         emit(Resource.Loading(true))
 
         try {
-            val response = api.getForecast(
-                city = city,
-            )
+            val response = remoteDataSource.getForecast(city)
 
             val domainList = response.toDomainList()
 
@@ -70,7 +73,7 @@ class WeatherRepositoryImpl @Inject constructor(
 
         } catch (e: IOException) {
             e.printStackTrace()
-            emit(Resource.Error("Network Error: Check your connection"))
+            emit(Resource.Error("Couldn't load data. Check internet connection."))
             emit(Resource.Loading(false))
         } catch (e: HttpException) {
             e.printStackTrace()
@@ -78,4 +81,12 @@ class WeatherRepositoryImpl @Inject constructor(
             emit(Resource.Loading(false))
         }
     }.flowOn(dispatchers.io)
+
+    override fun getLastViewedWeather(): Flow<WeatherInfo?> {
+        return localDataSource.getLastViewedWeather()
+            .map { entity ->
+                entity?.toDomainModel()
+            }
+            .flowOn(dispatchers.io)
+    }
 }

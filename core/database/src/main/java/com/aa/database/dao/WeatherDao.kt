@@ -4,7 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.aa.database.entity.WeatherEntity
+import com.aa.common.database_entity.WeatherEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao

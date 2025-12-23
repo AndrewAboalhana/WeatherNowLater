@@ -42,6 +42,7 @@ dependencies {
     implementation(libs.material)
 //region Architecture dependencies
     implementation(project(":core:common"))
+    implementation(project(":data"))
 //endregion
 //region dependency injection
     ksp(libs.hilt.ksp)

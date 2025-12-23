@@ -7,6 +7,7 @@ import com.aa.domain.repositories.WeatherRepository
 import com.aa.domain.usecases.GetCurrentWeatherUseCase
 import com.google.common.truth.Truth.assertThat
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
@@ -39,6 +40,7 @@ class GetCurrentWeatherUseCaseTest {
             assertThat(item.data?.cityName).isEqualTo("Cairo")
             awaitComplete()
         }
+        coVerify(exactly = 1) { repository.getCurrentWeather("Cairo") }
     }
 
     @Test
@@ -47,6 +49,21 @@ class GetCurrentWeatherUseCaseTest {
             val item = awaitItem()
             assertThat(item).isInstanceOf(Resource.Error::class.java)
             assertThat(item.message).isEqualTo("City name cannot be empty")
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `invoke emits error when repository fails`() = runTest {
+        val city = "UnknownCity"
+        val errorMessage = "Network Error"
+
+        coEvery { repository.getCurrentWeather(city) } returns flowOf(Resource.Error(errorMessage))
+
+        useCase(city).test {
+            val item = awaitItem()
+            assertThat(item).isInstanceOf(Resource.Error::class.java)
+            assertThat(item.message).isEqualTo(errorMessage)
             awaitComplete()
         }
     }

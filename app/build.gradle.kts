@@ -57,6 +57,10 @@ dependencies {
     implementation(project(":features:current_weather"))
     implementation(project(":features:forecast"))
     implementation(project(":core:common"))
+    implementation(project(":core:network"))
+    implementation(project(":core:database"))
+    implementation(project(":data"))
+    implementation(project(":domain"))
 //endregion
 //region dependency injection
     ksp(libs.hilt.ksp)

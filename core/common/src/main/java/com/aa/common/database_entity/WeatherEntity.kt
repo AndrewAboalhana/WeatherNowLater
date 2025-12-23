@@ -1,4 +1,4 @@
-package com.aa.database.entity
+package com.aa.common.database_entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

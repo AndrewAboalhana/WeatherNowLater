@@ -46,6 +46,14 @@ dependencies {
 //region Coroutine
     implementation(libs.coroutine)
 //endregion
+//region network
+    implementation(libs.retrofit.gson)
+//endregion
+//region room database
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.ksp)
+//endregion
 //region dependency injection
     ksp(libs.hilt.ksp)
     implementation(libs.hilt)

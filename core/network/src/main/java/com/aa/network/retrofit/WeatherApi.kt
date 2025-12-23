@@ -1,7 +1,7 @@
 package com.aa.network.retrofit
 
-import com.aa.network.model.ForecastResponseDto
-import com.aa.network.model.WeatherDto
+import com.aa.common.remote_resources.ForecastResponseDto
+import com.aa.common.remote_resources.WeatherDto
 import retrofit2.http.GET
 import retrofit2.http.Query
 

@@ -7,6 +7,7 @@ import com.aa.domain.repositories.WeatherRepository
 import com.aa.domain.usecases.GetForecastUseCase
 import com.google.common.truth.Truth.assertThat
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
@@ -36,6 +37,7 @@ class GetForecastUseCaseTest {
             assertThat(item.data?.first()?.conditionText).isEqualTo("Rainy")
             awaitComplete()
         }
+        coVerify(exactly = 1) { repository.getForecast("London") }
     }
 
     @Test
@@ -50,4 +52,15 @@ class GetForecastUseCaseTest {
             awaitComplete()
         }
     }
+
+    @Test
+    fun `invoke with empty city returns error`() = runTest {
+        useCase("").test {
+            val item = awaitItem()
+            assertThat(item).isInstanceOf(Resource.Error::class.java)
+            assertThat(item.message).isEqualTo("City name cannot be empty")
+            awaitComplete()
+        }
+    }
+
 }

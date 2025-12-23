@@ -9,4 +9,6 @@ interface WeatherRepository {
     suspend fun getCurrentWeather(city: String): Flow<Resource<WeatherInfo>>
 
     suspend fun getForecast(city: String): Flow<Resource<List<WeatherInfo>>>
+
+    fun getLastViewedWeather(): Flow<WeatherInfo?>
 }

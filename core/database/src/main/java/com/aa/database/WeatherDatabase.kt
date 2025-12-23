@@ -3,7 +3,7 @@ package com.aa.database
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import com.aa.database.dao.WeatherDao
-import com.aa.database.entity.WeatherEntity
+import com.aa.common.database_entity.WeatherEntity
 
 @Database(
     entities = [WeatherEntity::class],

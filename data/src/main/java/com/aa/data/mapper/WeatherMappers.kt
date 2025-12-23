@@ -1,9 +1,10 @@
 package com.aa.data.mapper
 
-import com.aa.network.model.WeatherDto
-import com.aa.database.entity.WeatherEntity
+
+import com.aa.common.database_entity.WeatherEntity
+import com.aa.common.remote_resources.ForecastResponseDto
+import com.aa.common.remote_resources.WeatherDto
 import com.aa.domain.models.WeatherInfo
-import com.aa.network.model.ForecastResponseDto
 
 fun WeatherDto.toDomainModel(): WeatherInfo {
     val iconCode = weather?.firstOrNull()?.icon ?: "01d"

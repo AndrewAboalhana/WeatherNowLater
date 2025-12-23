@@ -48,8 +48,6 @@ dependencies {
     implementation(libs.material)
 //region Architecture dependencies
     implementation(project(":domain"))
-    implementation(project(":core:network"))
-    implementation(project(":core:database"))
     implementation(project(":core:common"))
 //endregion
 //region dependency injection
