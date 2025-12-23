@@ -16,8 +16,18 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        mavenLocal()
     }
 }
 
 rootProject.name = "WeatherNow&Later"
 include(":app")
+include(":data")
+include(":domain")
+include(":core:common")
+include(":core:network")
+include(":core:database")
+include(":features:search")
+include(":features:current_weather")
+include(":features:forecast")
+include(":weather-lib")
