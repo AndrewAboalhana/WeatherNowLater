@@ -73,7 +73,7 @@ dependencies {
     implementation(libs.hilt)
 //endregion
 //region custom libraries
-    implementation("com.aa.weatherlib:weather-formatter:1.0.0")
+    implementation(libs.custom.library)
 //endregion
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

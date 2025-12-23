@@ -22,6 +22,11 @@ room = "2.8.4"
 coroutine = "1.10.2"
 coil = "2.7.0"
 hilt_navigation = "1.3.0"
+mockk = "1.13.5"
+google_truth = "1.1.3"
+coroutines-test = "1.7.3"
+turbine = "1.0.0"
+custom_library = "1.0.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -52,9 +57,14 @@ retrofit_gson = { group = "com.squareup.retrofit2", name = "converter-gson", ver
 room_runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 room_ksp = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 room_ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
-coroutine = {group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutine"}
 coil = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 hilt_navigation = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hilt_navigation" }
+mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
+google_truth = {group = "com.google.truth", name = "truth", version.ref = "google_truth"}
+coroutines_test = {group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines-test"}
+turbine = {group = "app.cash.turbine", name = "turbine", version.ref = "turbine"}
+custom_library = {group = "com.aa.weatherlib", name = "weather-formatter", version.ref = "custom_library"}
+
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

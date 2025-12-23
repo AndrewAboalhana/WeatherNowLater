@@ -54,7 +54,7 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 //region Coroutine
-    implementation(libs.coroutine)
+    implementation(libs.coroutines.flow)
 //endregion
 //region network
     implementation(libs.retrofit.gson)
