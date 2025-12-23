@@ -1,16 +1,10 @@
 package com.aa.data.repository
 
 import app.cash.turbine.test
-import com.aa.common.database_entity.WeatherEntity
 import com.aa.common.dispatcher.DispatcherProvider
-import com.aa.common.remote_resources.ForecastItemDto
-import com.aa.common.remote_resources.ForecastResponseDto
-import com.aa.common.remote_resources.MainDto
-import com.aa.common.remote_resources.MainForecastDto
-import com.aa.common.remote_resources.WeatherDescriptionDto
-import com.aa.common.remote_resources.WeatherDto
 import com.aa.data.source.WeatherLocalDataSource
 import com.aa.data.source.WeatherRemoteDataSource
+import com.aa.domain.models.WeatherInfo
 import com.aa.domain.util.Resource
 import com.google.common.truth.Truth.assertThat
 import io.mockk.coEvery
@@ -26,12 +20,13 @@ import org.junit.Before
 import org.junit.Test
 import java.io.IOException
 
+
 class WeatherRepositoryImplTest {
 
     private lateinit var repository: WeatherRepositoryImpl
-
     private val remoteDataSource: WeatherRemoteDataSource = mockk()
-    private val localDataSource: WeatherLocalDataSource = mockk(relaxed = true)
+
+    private val localDataSource: WeatherLocalDataSource = mockk()
 
     private val testScheduler = TestCoroutineScheduler()
     private val testDispatcher = StandardTestDispatcher(testScheduler)
@@ -44,70 +39,45 @@ class WeatherRepositoryImplTest {
 
     @Before
     fun setup() {
+        coEvery { localDataSource.insertWeather(any()) } returns Unit
+
         repository = WeatherRepositoryImpl(remoteDataSource, localDataSource, dispatcherProvider)
     }
 
-    // --- Current Weather Tests ---
-
     @Test
-    fun `getCurrentWeather emits local data then remote data`() = runTest(testDispatcher) {
+    fun `getCurrentWeather fetches from remote, saves to local, and emits success`() = runTest(testDispatcher) {
         val city = "Cairo"
+        val mockDomainModel = WeatherInfo("Cairo", 30.0, "Clear", "01d", 50, 10.0, "2025")
 
-        val localEntity = WeatherEntity("Cairo", 20.0, "Clear", "", 40, 5.0, 1000L)
+        coEvery { localDataSource.getWeatherByCity(city) } returnsMany listOf(null, mockDomainModel)
 
-        coEvery { localDataSource.getWeatherByCity(city) } returns localEntity
-
-        val remoteDto = WeatherDto(
-            name = "Cairo",
-            main = MainDto(
-                temp = 30.0,
-                humidity = 50,
-                feelsLike = 0.0,
-                tempMin = 0.0,
-                tempMax = 1000.0,
-                pressure = 1000,
-                seaLevel = 1000,
-                grndLevel = 0
-            ),
-            weather = emptyList(),
-            wind = null,
-            coord = null,
-            base = null,
-            visibility = null,
-            clouds = null,
-            dt = null,
-            sys = null,
-            timezone = null,
-            id = null,
-            cod = null
-        )
-
-        coEvery { remoteDataSource.getCurrentWeather(city) } returns remoteDto
+        coEvery { remoteDataSource.getCurrentWeather(city) } returns mockDomainModel
 
         repository.getCurrentWeather(city).test {
             assertThat(awaitItem()).isInstanceOf(Resource.Loading::class.java)
 
-            val localItem = awaitItem()
-            assertThat(localItem).isInstanceOf(Resource.Success::class.java)
-            assertThat(localItem.data?.temperature).isEqualTo(20.0)
+            val successItem = awaitItem()
+            assertThat(successItem).isInstanceOf(Resource.Success::class.java)
+            assertThat(successItem.data).isEqualTo(mockDomainModel)
+
             assertThat(awaitItem()).isInstanceOf(Resource.Loading::class.java)
 
-            val finalItem = awaitItem()
-            assertThat(finalItem).isInstanceOf(Resource.Success::class.java)
-            assertThat(awaitItem()).isInstanceOf(Resource.Loading::class.java)
             awaitComplete()
         }
 
-        coVerify { localDataSource.insertWeather(any()) }
+        coVerify { localDataSource.insertWeather(mockDomainModel) }
+        coVerify(exactly = 2) { localDataSource.getWeatherByCity(city) }
     }
 
     @Test
-    fun `getCurrentWeather emits error when api fails and no cache`() = runTest(testDispatcher) {
+    fun `getCurrentWeather emits error when api fails`() = runTest(testDispatcher) {
+        val city = "Cairo"
+
         coEvery { localDataSource.getWeatherByCity(any()) } returns null
 
-        coEvery { remoteDataSource.getCurrentWeather(any()) } throws IOException("Network Error")
+        coEvery { remoteDataSource.getCurrentWeather(city) } throws IOException("Network Error")
 
-        repository.getCurrentWeather("Cairo").test {
+        repository.getCurrentWeather(city).test {
             assertThat(awaitItem()).isInstanceOf(Resource.Loading::class.java)
 
             val errorItem = awaitItem()
@@ -115,7 +85,6 @@ class WeatherRepositoryImplTest {
             assertThat(errorItem.message).contains("Check internet connection")
 
             assertThat(awaitItem()).isInstanceOf(Resource.Loading::class.java)
-
             awaitComplete()
         }
     }
@@ -123,35 +92,25 @@ class WeatherRepositoryImplTest {
     // --- Forecast Tests ---
 
     @Test
-    fun `getForecast fetches from api and emits success`() = runTest(testDispatcher) {
+    fun `getForecast fetches list from remote and emits success`() = runTest(testDispatcher) {
         val city = "Dubai"
-        val forecastDto = ForecastResponseDto(
-            cod = "200", message = 0, cnt = 40, city = null,
-            list = listOf(
-                ForecastItemDto(
-                    dt = 123456789,
-                    dtTxt = "2025-12-22 12:00:00",
-                    main = MainForecastDto(25.0, 24.0, 20.0, 30.0, 1010, 1010, 1010, 50, 0.0),
-                    weather = listOf(WeatherDescriptionDto(800, "Clear", "Clear sky", "01d")),
-                    clouds = null, wind = null, visibility = 10000, pop = 0.0, sys = null
-                )
-            )
+
+        val mockForecastList = listOf(
+            WeatherInfo("Dubai", 25.0, "Clear", "01d", 40, 5.0, "20-10-2025"),
+            WeatherInfo("Dubai", 26.0, "Cloudy", "02d", 45, 6.0, "20-10-2025")
         )
 
-        coEvery { remoteDataSource.getForecast(city) } returns forecastDto
+        coEvery { remoteDataSource.getForecast(city) } returns mockForecastList
 
         repository.getForecast(city).test {
             assertThat(awaitItem()).isInstanceOf(Resource.Loading::class.java)
 
             val successItem = awaitItem()
             assertThat(successItem).isInstanceOf(Resource.Success::class.java)
-
-            val list = successItem.data
-            assertThat(list).isNotEmpty()
-            assertThat(list?.first()?.temperature).isEqualTo(25.0)
+            assertThat(successItem.data).hasSize(2)
+            assertThat(successItem.data?.first()?.temperature).isEqualTo(25.0)
 
             assertThat(awaitItem()).isInstanceOf(Resource.Loading::class.java)
-
             awaitComplete()
         }
     }
@@ -159,7 +118,6 @@ class WeatherRepositoryImplTest {
     @Test
     fun `getForecast emits error when api fails`() = runTest(testDispatcher) {
         val city = "Nowhere"
-
         coEvery { remoteDataSource.getForecast(city) } throws IOException("Server Down")
 
         repository.getForecast(city).test {
@@ -171,17 +129,17 @@ class WeatherRepositoryImplTest {
         }
     }
 
-    @Test
-    fun `getLastViewedWeather emits mapped domain model`() = runTest(testDispatcher) {
-        val entity = WeatherEntity("London", 15.0, "Rain", "", 60, 10.0, 1000L)
+    // --- Last Viewed Weather Tests ---
 
-        every { localDataSource.getLastViewedWeather() } returns flowOf(entity)
+    @Test
+    fun `getLastViewedWeather emits domain model directly`() = runTest(testDispatcher) {
+        val mockDomainModel = WeatherInfo("London", 15.0, "Rain", "10d", 60, 10.0, "20-10-2025")
+
+        every { localDataSource.getLastViewedWeather() } returns flowOf(mockDomainModel)
 
         repository.getLastViewedWeather().test {
             val item = awaitItem()
-            assertThat(item).isNotNull()
-            assertThat(item?.cityName).isEqualTo("London")
-            assertThat(item?.temperature).isEqualTo(15.0)
+            assertThat(item).isEqualTo(mockDomainModel)
             awaitComplete()
         }
 

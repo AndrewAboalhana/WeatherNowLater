@@ -1,9 +1,9 @@
 package com.aa.data.source
 
-import com.aa.common.remote_resources.ForecastResponseDto
-import com.aa.common.remote_resources.WeatherDto
+
+import com.aa.domain.models.WeatherInfo
 
 interface WeatherRemoteDataSource {
-    suspend fun getCurrentWeather(city: String): WeatherDto
-    suspend fun getForecast(city: String): ForecastResponseDto
+    suspend fun getCurrentWeather(city: String): WeatherInfo
+    suspend fun getForecast(city: String): List<WeatherInfo>
 }

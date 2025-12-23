@@ -4,9 +4,6 @@ import android.net.http.HttpException
 import android.os.Build
 import androidx.annotation.RequiresExtension
 import com.aa.common.dispatcher.DispatcherProvider
-import com.aa.data.mapper.toDomainList
-import com.aa.data.mapper.toDomainModel
-import com.aa.data.mapper.toEntity
 import com.aa.data.source.WeatherLocalDataSource
 import com.aa.data.source.WeatherRemoteDataSource
 import com.aa.domain.models.WeatherInfo
@@ -31,19 +28,19 @@ class WeatherRepositoryImpl @Inject constructor(
 
         val localData = localDataSource.getWeatherByCity(city)
         if (localData != null) {
-            emit(Resource.Success(localData.toDomainModel()))
+            emit(Resource.Success(localData))
             emit(Resource.Loading(true))
         }
 
         try {
             val remoteData = remoteDataSource.getCurrentWeather(city)
 
-            localDataSource.insertWeather(remoteData.toEntity())
+            localDataSource.insertWeather(remoteData)
 
-            val updatedLocalData = localDataSource.getWeatherByCity(remoteData.name ?: city)
+            val updatedLocalData = localDataSource.getWeatherByCity(remoteData.cityName)
 
             if (updatedLocalData != null) {
-                emit(Resource.Success(updatedLocalData.toDomainModel()))
+                emit(Resource.Success(updatedLocalData))
             }
             emit(Resource.Loading(false))
 
@@ -56,6 +53,10 @@ class WeatherRepositoryImpl @Inject constructor(
             e.printStackTrace()
             emit(Resource.Error("Server error: ${e.message}"))
             emit(Resource.Loading(false))
+        } catch (e: Throwable) {
+            e.printStackTrace()
+            emit(Resource.Error("Unexpected error: ${e.localizedMessage ?: "Unknown error"}"))
+            emit(Resource.Loading(false))
         }
     }.flowOn(dispatchers.io)
 
@@ -66,9 +67,7 @@ class WeatherRepositoryImpl @Inject constructor(
         try {
             val response = remoteDataSource.getForecast(city)
 
-            val domainList = response.toDomainList()
-
-            emit(Resource.Success(domainList))
+            emit(Resource.Success(response))
             emit(Resource.Loading(false))
 
         } catch (e: IOException) {
@@ -79,13 +78,17 @@ class WeatherRepositoryImpl @Inject constructor(
             e.printStackTrace()
             emit(Resource.Error("Server Error: ${e.message}"))
             emit(Resource.Loading(false))
+        } catch (e: Throwable) {
+            e.printStackTrace()
+            emit(Resource.Error("Unexpected error: ${e.localizedMessage ?: "Unknown error"}"))
+            emit(Resource.Loading(false))
         }
     }.flowOn(dispatchers.io)
 
     override fun getLastViewedWeather(): Flow<WeatherInfo?> {
         return localDataSource.getLastViewedWeather()
             .map { entity ->
-                entity?.toDomainModel()
+                entity
             }
             .flowOn(dispatchers.io)
     }

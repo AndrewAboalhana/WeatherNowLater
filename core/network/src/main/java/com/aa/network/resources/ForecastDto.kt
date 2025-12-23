@@ -1,4 +1,4 @@
-package com.aa.common.remote_resources
+package com.aa.network.resources
 
 import com.google.gson.annotations.SerializedName
 
