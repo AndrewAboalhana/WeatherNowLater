@@ -12,7 +12,6 @@ import com.aa.domain.util.Resource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
 import java.io.IOException
 import javax.inject.Inject
 
@@ -86,10 +85,6 @@ class WeatherRepositoryImpl @Inject constructor(
     }.flowOn(dispatchers.io)
 
     override fun getLastViewedWeather(): Flow<WeatherInfo?> {
-        return localDataSource.getLastViewedWeather()
-            .map { entity ->
-                entity
-            }
-            .flowOn(dispatchers.io)
+        return localDataSource.getLastViewedWeather().flowOn(dispatchers.io)
     }
 }

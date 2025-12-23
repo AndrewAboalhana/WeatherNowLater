@@ -5,6 +5,6 @@ import com.aa.domain.models.WeatherInfo
 
 data class CurrentWeatherUiState(
     val weatherInfo: WeatherInfo? = null,
-    val isLoading: Boolean = false, // ممكن نستخدمها لو بنعمل Silent Refresh
+    val isLoading: Boolean = false,
     val error: String? = null
 ) : BaseUiState
